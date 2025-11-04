@@ -7,6 +7,7 @@ import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 
+import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -18,11 +19,13 @@ public class ObsWebSocketListener extends WebSocketListener {
 
     public static final Integer RPC_VERSION = 1;
 
-    public ObsWebSocketListener(String password) {
+    private final Gson gson;
+
+    public ObsWebSocketListener(Gson gson, String password) {
+        this.gson = gson;
         this.password = password;
     }
 
-    private final Gson gson = new Gson();
 
     private static class ObsV5Message {
         public int op;

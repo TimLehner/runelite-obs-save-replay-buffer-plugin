@@ -52,7 +52,7 @@ public class ObsWebSocketClient {
         Request request = new Request.Builder()
                 .url(websocketUrl)
                 .build();
-        this.webSocket = client.newWebSocket(request, new ObsWebSocketListener(password));
+        this.webSocket = client.newWebSocket(request, new ObsWebSocketListener(gson, password));
     }
 
     public void disconnect() {
