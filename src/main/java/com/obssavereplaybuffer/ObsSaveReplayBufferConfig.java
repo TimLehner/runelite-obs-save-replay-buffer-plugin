@@ -51,6 +51,17 @@ public interface ObsSaveReplayBufferConfig extends Config
     }
 
     @ConfigItem(
+            keyName = "saveAfterDelay",
+            name = "Save after delay",
+            description = "Delay the attempt to save the OBS replay buffer by a number of seconds.",
+            position = 1
+    )
+    default int saveAfterDelay()
+    {
+        return 0;
+    }
+
+    @ConfigItem(
             keyName = "websocketPassword",
             name = "WebSocket Server Password",
             description = "The WebSocket Server Password displayed in OBS Tools -> WebSocket Server Settings",

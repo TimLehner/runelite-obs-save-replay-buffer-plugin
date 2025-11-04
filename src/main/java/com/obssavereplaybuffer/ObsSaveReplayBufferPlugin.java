@@ -53,16 +53,27 @@ public class ObsSaveReplayBufferPlugin extends Plugin
         return configManager.getConfig(ObsSaveReplayBufferConfig.class);
     }
 
+    private void setTimeout(Runnable runnable, int delaySeconds) {
+        new Thread(() -> {
+            try {
+                Thread.sleep(delaySeconds * 1000L);
+                runnable.run();
+            } catch (InterruptedException e) {
+                runnable.run();
+            }
+        }).start();
+    }
+
     @Subscribe
     private void onScreenshotTaken(ScreenshotTaken event) {
         if (config.saveObsReplayBuffer()) {
             log.debug("Attempting to save OBS Replay Buffer");
-            this.obsClient.saveReplayBuffer();
+            this.setTimeout(this.obsClient::saveReplayBuffer, config.saveAfterDelay());
         }
     }
 
     @Override
-    protected void startUp() throws Exception
+    protected void startUp()
     {
         if (config.saveObsReplayBuffer()) {
             log.debug("Startup OBS Connection");
@@ -72,7 +83,7 @@ public class ObsSaveReplayBufferPlugin extends Plugin
     }
 
     @Override
-    protected void shutDown() throws Exception
+    protected void shutDown()
     {
         if (this.obsClient != null) {
             log.debug("Shutdown OBS Connection");
