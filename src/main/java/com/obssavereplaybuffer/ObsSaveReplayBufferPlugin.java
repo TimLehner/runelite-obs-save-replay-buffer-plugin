@@ -49,14 +49,11 @@ public class ObsSaveReplayBufferPlugin extends Plugin
 
     private ObsWebSocketClient obsClient;
 
-    private final OkHttpClient client;
-    private final Gson gson;
+    @Inject
+    private OkHttpClient okHttpClient;
 
-
-    public ObsSaveReplayBufferPlugin(OkHttpClient client, Gson gson) {
-        this.client = client;
-        this.gson = gson;
-    }
+    @Inject
+    private Gson gson;
 
     @Provides
     ObsSaveReplayBufferConfig getConfig(ConfigManager configManager)
@@ -88,7 +85,7 @@ public class ObsSaveReplayBufferPlugin extends Plugin
     {
         if (config.saveObsReplayBuffer()) {
             log.debug("Startup OBS Connection");
-            this.obsClient = new ObsWebSocketClient(client, gson, config.websocketServerHost(), config.websocketPort(), config.websocketPassword());
+            this.obsClient = new ObsWebSocketClient(okHttpClient, gson, config.websocketServerHost(), config.websocketPort(), config.websocketPassword());
             this.obsClient.connect();
         }
     }
