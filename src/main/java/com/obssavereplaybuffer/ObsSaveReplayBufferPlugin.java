@@ -25,7 +25,6 @@
 package com.obssavereplaybuffer;
 
 import com.google.inject.Provides;
-import io.obswebsocket.community.client.OBSRemoteController;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -46,7 +45,7 @@ public class ObsSaveReplayBufferPlugin extends Plugin
     @Inject
     private ObsSaveReplayBufferConfig config;
 
-    private OBSRemoteController controller;
+    private ObsWebSocketClient obsClient;
 
     @Provides
     ObsSaveReplayBufferConfig getConfig(ConfigManager configManager)
@@ -58,7 +57,7 @@ public class ObsSaveReplayBufferPlugin extends Plugin
     private void onScreenshotTaken(ScreenshotTaken event) {
         if (config.saveObsReplayBuffer()) {
             log.debug("Attempting to save OBS Replay Buffer");
-            this.controller.saveReplayBuffer(10000);
+            this.obsClient.saveReplayBuffer();
         }
     }
 
@@ -67,21 +66,17 @@ public class ObsSaveReplayBufferPlugin extends Plugin
     {
         if (config.saveObsReplayBuffer()) {
             log.debug("Startup OBS Connection");
-            this.controller = OBSRemoteController.builder()
-                    .host(config.websocketServerHost())
-                    .port(config.websocketPort())
-                    .password(config.websocketPassword())
-                    .build();
-            this.controller.connect();
+            this.obsClient = new ObsWebSocketClient(config.websocketServerHost(), config.websocketPort(), config.websocketPassword());
+            this.obsClient.connect();
         }
     }
 
     @Override
     protected void shutDown() throws Exception
     {
-        if (this.controller != null) {
+        if (this.obsClient != null) {
             log.debug("Shutdown OBS Connection");
-            this.controller.disconnect();
+            this.obsClient.disconnect();
         }
     }
 
