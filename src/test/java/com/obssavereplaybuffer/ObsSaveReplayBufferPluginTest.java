@@ -1,13 +1,13 @@
-package com.example;
+package com.obssavereplaybuffer;
 
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;
 
-public class ExamplePluginTest
+public class ObsSaveReplayBufferPluginTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(ExamplePlugin.class);
+		ExternalPluginManager.loadBuiltin(ObsSaveReplayBufferPlugin.class);
 		RuneLite.main(args);
 	}
 }
