@@ -29,6 +29,7 @@ import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.ScreenshotTaken;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -75,13 +76,30 @@ public class ObsSaveReplayBufferPlugin extends Plugin
         }
     }
 
+    private void reconnect() {
+        if (obsClient != null) {
+            obsClient.disconnect();
+        }
+
+        obsClient = new ObsWebSocketClient(okHttpClient, gson, config.websocketServerHost(), config.websocketPort(), config.websocketPassword());
+        obsClient.connect();
+    }
+
+    @Subscribe
+    private void onConfigChanged(ConfigChanged event) {
+        if (!Objects.equals(event.getGroup(), "obssavereplaybuffer")) {
+            return;
+        }
+
+        reconnect();
+    }
+
     @Override
     protected void startUp()
     {
         if (config.saveObsReplayBuffer()) {
             log.debug("Startup OBS Connection");
-            this.obsClient = new ObsWebSocketClient(okHttpClient, gson, config.websocketServerHost(), config.websocketPort(), config.websocketPassword());
-            this.obsClient.connect();
+            reconnect();
         }
     }
 
