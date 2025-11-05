@@ -135,4 +135,9 @@ public class ObsWebSocketListener extends WebSocketListener {
             log.info("OBS successfully Identified. Connection ready.");
         }
     }
+
+    @Override
+    public void onClosing(WebSocket webSocket, int code, String reason) {
+        log.error("WebSocket closed with code: {}, reason: {}", code, reason);
+    }
 }
