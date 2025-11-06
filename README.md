@@ -123,3 +123,4 @@ Any option in the RuneLite Screenshot plugin that is ticked trigger a clip to sa
 ## Tips and Advanced Guides
 
 1. [Automatically start the Replay Buffer when launching OBS](./docs/automatically-start-replay-buffer.md)
+2. [Integrate with other plugins like Watchdog using Plugin Messages](./docs/plugin-message-integration-guide.md)
