@@ -118,3 +118,8 @@ A clip is automatically saved when RuneLite takes a screenshot.
 Any option in the RuneLite Screenshot plugin that is ticked trigger a clip to save.
 
 ![Image of Screenshot base plugin options](./docs/img/ScreenshotPluginReferenceSettings.png)
+
+
+## Tips and Advanced Guides
+
+1. [Automatically start the Replay Buffer when launching OBS](./docs/automatically-start-replay-buffer.md)
