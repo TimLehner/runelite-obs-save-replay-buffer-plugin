@@ -24,14 +24,15 @@
  */
 package com.savereplaybufferforobs;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
-import net.runelite.api.events.ActorDeath;
-import net.runelite.api.events.AnimationChanged;
+import net.runelite.api.events.*;
+import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.AnimationID;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -43,6 +44,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import okhttp3.OkHttpClient;
 
 import javax.inject.Inject;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -80,6 +82,8 @@ public class SaveReplayBufferForObsPlugin extends Plugin
 
     protected enum EventType
     {
+        LEVEL_UP,
+        CHEST_REWARD,
         DEATH,
         SCREENSHOT
     }
@@ -87,10 +91,14 @@ public class SaveReplayBufferForObsPlugin extends Plugin
     private int getDelayTime(EventType eventType)
     {
         switch (eventType) {
-            case DEATH:
-                return config.deathDelay();
             case SCREENSHOT:
                 return config.screenshotDelay();
+            case LEVEL_UP:
+                return config.levelsDelay();
+            case CHEST_REWARD:
+                return config.rewardsDelay();
+            case DEATH:
+                return config.deathDelay();
             default:
                 return 0;
         }
@@ -231,4 +239,89 @@ public class SaveReplayBufferForObsPlugin extends Plugin
             saveReplayBuffer(EventType.DEATH);
         }
     }
+
+    private boolean shouldTakeScreenshot = false;
+    private EventType queuedScreenshotType = null;
+
+    private static final String CHEST_LOOTED_MESSAGE = "You find some treasure in the chest!";
+    private static final Map<Integer, String> CHEST_LOOT_EVENTS = ImmutableMap.of(12127, "The Gauntlet");
+
+    @Subscribe
+    public void onChatMessage(ChatMessage chatMessage)
+    {
+        // original source https://github.com/runelite/runelite/blob/f448dc9d0d0be8553500c2e992afabe643b57b2f/runelite-client/src/main/java/net/runelite/client/plugins/screenshot/ScreenshotPlugin.java#L349
+        if (chatMessage.equals(CHEST_LOOTED_MESSAGE) && config.saveRewards())
+        {
+            final int regionID = client.getLocalPlayer().getWorldLocation().getRegionID();
+            String eventName = CHEST_LOOT_EVENTS.get(regionID);
+            if (eventName != null)
+            {
+                saveReplayBuffer(EventType.CHEST_REWARD);
+            }
+        }
+    }
+
+    @Subscribe
+    public void onWidgetLoaded(WidgetLoaded event)
+    {
+        // original source https://github.com/runelite/runelite/blob/f448dc9d0d0be8553500c2e992afabe643b57b2f/runelite-client/src/main/java/net/runelite/client/plugins/screenshot/ScreenshotPlugin.java#L553
+        int groupId = event.getGroupId();
+
+        switch (groupId)
+        {
+            case InterfaceID.QUESTSCROLL:
+            case InterfaceID.TRAIL_REWARDSCREEN:
+            case InterfaceID.RAIDS_REWARDS:
+            case InterfaceID.TOB_CHESTS:
+            case InterfaceID.TOA_CHESTS:
+            case InterfaceID.BARROWS_REWARD:
+            case InterfaceID.PMOON_REWARD:
+            case InterfaceID.COLOSSEUM_REWARD_CHEST_2:
+                if (!config.saveRewards())
+                {
+                    return;
+                }
+                queuedScreenshotType = EventType.CHEST_REWARD;
+                break;
+            case InterfaceID.LEVELUP_DISPLAY:
+                if (!config.saveLevels())
+                {
+                    return;
+                }
+                queuedScreenshotType = EventType.LEVEL_UP;
+                break;
+        }
+
+        switch (groupId)
+        {
+            case InterfaceID.LEVELUP_DISPLAY:
+            case InterfaceID.OBJECTBOX:
+            case InterfaceID.QUESTSCROLL:
+            {
+                // level up widget gets loaded prior to the text being set, so wait until the next tick
+                shouldTakeScreenshot = true;
+                return;
+            }
+        }
+
+        if (queuedScreenshotType != null) {
+            saveReplayBuffer(queuedScreenshotType);
+            queuedScreenshotType = null;
+            shouldTakeScreenshot = false;
+        }
+    }
+
+    @Subscribe
+    public void onGameTick(GameTick event)
+    {
+        if (!shouldTakeScreenshot)
+        {
+            return;
+        }
+
+        saveReplayBuffer(queuedScreenshotType);
+        queuedScreenshotType = null;
+        shouldTakeScreenshot = false;
+    }
+
 }

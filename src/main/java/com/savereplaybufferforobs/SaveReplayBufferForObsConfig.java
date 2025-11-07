@@ -66,6 +66,30 @@ public interface SaveReplayBufferForObsConfig extends Config
     }
 
     @ConfigItem(
+            keyName = "saveRewards",
+            name = "Rewards",
+            description = "Attempt to save the OBS replay buffer for chests, clues, barrows and quest completion.",
+            position = 3,
+            section = whatSection
+    )
+    default boolean saveRewards()
+    {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "saveLevels",
+            name = "Levels",
+            description = "Attempt to save the OBS replay buffer for level ups.",
+            position = 4,
+            section = whatSection
+    )
+    default boolean saveLevels()
+    {
+        return true;
+    }
+
+    @ConfigItem(
             keyName = "savePlayerDeath",
             name = "Player Deaths",
             description = "Attempt to save the OBS replay buffer whenever you die.",
@@ -118,10 +142,28 @@ public interface SaveReplayBufferForObsConfig extends Config
     default int screenshotDelay() { return 0; }
 
     @ConfigItem(
+            keyName = "rewardsDelay",
+            name = "Rewards",
+            description = "Delay the attempt to save the OBS replay buffer after any rewards by a number of seconds.",
+            position = 1,
+            section = delaySection
+    )
+    default int rewardsDelay() { return 0; }
+
+    @ConfigItem(
+            keyName = "levelsDelay",
+            name = "Levels",
+            description = "Delay the attempt to save the OBS replay buffer after any gained levels.",
+            position = 2,
+            section = delaySection
+    )
+    default int levelsDelay() { return 0; }
+
+    @ConfigItem(
             keyName = "deathDelay",
             name = "All deaths",
             description = "Delay the attempt to save the OBS replay buffer after any deaths by a number of seconds.",
-            position = 1,
+            position = 10,
             section = delaySection
     )
     default int deathDelay() { return 0; }
