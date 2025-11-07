@@ -82,6 +82,7 @@ public class SaveReplayBufferForObsPlugin extends Plugin
 
     protected enum EventType
     {
+        KINGDOM,
         LEVEL_UP,
         CHEST_REWARD,
         DEATH,
@@ -99,6 +100,8 @@ public class SaveReplayBufferForObsPlugin extends Plugin
                 return config.rewardsDelay();
             case DEATH:
                 return config.deathDelay();
+            case KINGDOM:
+                return config.kingdomDelay();
             default:
                 return 0;
         }
@@ -289,6 +292,13 @@ public class SaveReplayBufferForObsPlugin extends Plugin
                     return;
                 }
                 queuedScreenshotType = EventType.LEVEL_UP;
+                break;
+            case InterfaceID.MISC_COLLECTION:
+                if (!config.saveKingdom())
+                {
+                    return;
+                }
+                queuedScreenshotType = EventType.KINGDOM;
                 break;
         }
 

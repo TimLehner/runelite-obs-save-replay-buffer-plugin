@@ -86,7 +86,19 @@ public interface SaveReplayBufferForObsConfig extends Config
     )
     default boolean saveLevels()
     {
-        return true;
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "saveKingdom",
+            name = "Kingdom rewards",
+            description = "Attempt to save the OBS replay buffer for kingdom reward.",
+            position = 5,
+            section = whatSection
+    )
+    default boolean saveKingdom()
+    {
+        return false;
     }
 
     @ConfigItem(
@@ -158,6 +170,15 @@ public interface SaveReplayBufferForObsConfig extends Config
             section = delaySection
     )
     default int levelsDelay() { return 0; }
+
+    @ConfigItem(
+            keyName = "kingdomDelay",
+            name = "Kingdom",
+            description = "Delay the attempt to save the OBS replay buffer after collection Kingdom rewards in Miscellania.",
+            position = 3,
+            section = delaySection
+    )
+    default int kingdomDelay() { return 0; }
 
     @ConfigItem(
             keyName = "deathDelay",
