@@ -114,6 +114,18 @@ public interface SaveReplayBufferForObsConfig extends Config
     }
 
     @ConfigItem(
+            keyName = "saveKills",
+            name = "PvP kills",
+            description = "Attempt to save the OBS replay buffer for PvP kills.",
+            position = 8,
+            section = whatSection
+    )
+    default boolean saveKills()
+    {
+        return false;
+    }
+
+    @ConfigItem(
             keyName = "savePlayerDeath",
             name = "Player Deaths",
             description = "Attempt to save the OBS replay buffer whenever you die.",
@@ -200,6 +212,15 @@ public interface SaveReplayBufferForObsConfig extends Config
             section = delaySection
     )
     default int petDelay() { return 0; }
+
+    @ConfigItem(
+            keyName = "pvpKillDelay",
+            name = "PvP kill",
+            description = "Delay the attempt to save the OBS replay buffer after PvP kills.",
+            position = 5,
+            section = delaySection
+    )
+    default int pvpKillDelay() { return 0; }
 
     @ConfigItem(
             keyName = "deathDelay",

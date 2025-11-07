@@ -38,6 +38,7 @@ import net.runelite.api.gameval.AnimationID;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.events.PlayerLootReceived;
 import net.runelite.client.events.PluginMessage;
 import net.runelite.client.events.ScreenshotTaken;
 import net.runelite.client.plugins.Plugin;
@@ -83,6 +84,7 @@ public class SaveReplayBufferForObsPlugin extends Plugin
 
     protected enum EventType
     {
+        PVP_KILL,
         PET,
         KINGDOM,
         LEVEL_UP,
@@ -106,6 +108,8 @@ public class SaveReplayBufferForObsPlugin extends Plugin
                 return config.kingdomDelay();
             case PET:
                 return config.petDelay();
+            case PVP_KILL:
+                return config.pvpKillDelay();
             default:
                 return 0;
         }
@@ -331,6 +335,16 @@ public class SaveReplayBufferForObsPlugin extends Plugin
             saveReplayBuffer(queuedScreenshotType);
             queuedScreenshotType = null;
             shouldTakeScreenshot = false;
+        }
+    }
+
+    @Subscribe
+    public void onPlayerLootReceived(final PlayerLootReceived playerLootReceived)
+    {
+        // original source https://github.com/runelite/runelite/blob/f448dc9d0d0be8553500c2e992afabe643b57b2f/runelite-client/src/main/java/net/runelite/client/plugins/screenshot/ScreenshotPlugin.java#324
+        if (config.saveKills())
+        {
+            saveReplayBuffer(EventType.PVP_KILL);
         }
     }
 
