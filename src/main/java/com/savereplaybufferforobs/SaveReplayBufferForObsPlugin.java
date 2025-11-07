@@ -44,6 +44,7 @@ import net.runelite.client.events.PluginMessage;
 import net.runelite.client.events.ScreenshotTaken;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.Text;
 import okhttp3.OkHttpClient;
 
@@ -64,7 +65,7 @@ import static com.savereplaybufferforobs.Constants.PLUGIN_IDENTIFIER;
         tags = {"external", "videos", "integration", "OBS"}
 )
 @Slf4j
-public class SaveReplayBufferForObsPlugin extends Plugin
+public class SaveReplayBufferForObsPlugin extends Plugin implements DisplaysExceptions
 {
     @Inject
     private SaveReplayBufferForObsConfig config;
@@ -80,10 +81,27 @@ public class SaveReplayBufferForObsPlugin extends Plugin
     @Inject
     private Gson gson;
 
+    @Inject
+    private OverlayManager overlayManager;
+
+    private ObsExceptionOverlay obsExceptionOverlay = null;
+
     @Provides
     SaveReplayBufferForObsConfig getConfig(ConfigManager configManager)
     {
         return configManager.getConfig(SaveReplayBufferForObsConfig.class);
+    }
+
+    @Override
+    public void setObsException(ObsException exception) {
+        obsExceptionOverlay = new ObsExceptionOverlay(config, exception);
+        overlayManager.add(obsExceptionOverlay);
+    }
+
+    @Override
+    public void clearObsException() {
+        overlayManager.remove(obsExceptionOverlay);
+        obsExceptionOverlay = null;
     }
 
     protected enum EventType
@@ -163,7 +181,15 @@ public class SaveReplayBufferForObsPlugin extends Plugin
             obsClient.disconnect();
         }
 
-        obsClient = new WebSocketClientForObs(okHttpClient, gson, config.websocketServerHost(), config.websocketPort(), config.websocketPassword());
+        clearObsException();
+        obsClient = new WebSocketClientForObs(
+                okHttpClient,
+                gson,
+                config.websocketServerHost(),
+                config.websocketPort(),
+                config.websocketPassword(),
+                this
+        );
         obsClient.connect();
     }
 
@@ -201,6 +227,7 @@ public class SaveReplayBufferForObsPlugin extends Plugin
     @Override
     protected void shutDown()
     {
+        overlayManager.clear();
         if (this.obsClient != null) {
             log.debug("Shutdown OBS Connection");
             this.obsClient.disconnect();

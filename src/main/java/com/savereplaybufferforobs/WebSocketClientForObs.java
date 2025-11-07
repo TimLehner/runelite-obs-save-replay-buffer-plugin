@@ -14,6 +14,8 @@ public class WebSocketClientForObs {
 
     private WebSocket webSocket;
 
+    private DisplaysExceptions exceptionsDisplay;
+
     private class ObsRequest {
         private final int op = 6;
         private final D d;
@@ -35,11 +37,12 @@ public class WebSocketClientForObs {
         }
     }
 
-    public WebSocketClientForObs(OkHttpClient client, Gson gson, String host, int port, String password) {
+    public WebSocketClientForObs(OkHttpClient client, Gson gson, String host, int port, String password, DisplaysExceptions exceptionsDisplay) {
         this.client = client;
         this.gson = gson;
         this.websocketUrl = "ws://" + host + ":" + port;
         this.password = password;
+        this.exceptionsDisplay = exceptionsDisplay;
     }
 
     public void makeOBSRequest(String requestType, String requestId, Object requestData) {
@@ -56,7 +59,7 @@ public class WebSocketClientForObs {
         Request request = new Request.Builder()
                 .url(websocketUrl)
                 .build();
-        this.webSocket = client.newWebSocket(request, new WebSocketListenerForObs(gson, password));
+        this.webSocket = client.newWebSocket(request, new WebSocketListenerForObs(gson, password, exceptionsDisplay));
     }
 
     public void disconnect() {

@@ -467,4 +467,13 @@ public interface SaveReplayBufferForObsConfig extends Config
             section = wsSection
     )
     default String websocketServerHost() { return "localhost"; }
+
+    @ConfigItem(
+            keyName = "displayErrorOverlay",
+            name = "Show Error Overlays",
+            description = "Adds overlay warnings given WebSocket connection errors",
+            position = 3,
+            section = wsSection
+    )
+    default boolean displayErrorOverlay() { return true; }
 }

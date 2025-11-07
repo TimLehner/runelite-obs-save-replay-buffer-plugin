@@ -10,6 +10,8 @@ import okhttp3.WebSocketListener;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.Format;
+import java.text.MessageFormat;
 import java.util.Base64;
 
 @Slf4j
@@ -20,9 +22,12 @@ public class WebSocketListenerForObs extends WebSocketListener {
 
     private final Gson gson;
 
-    public WebSocketListenerForObs(Gson gson, String password) {
+    private final DisplaysExceptions exceptionsDisplay;
+
+    public WebSocketListenerForObs(Gson gson, String password, DisplaysExceptions displaysExceptions) {
         this.gson = gson;
         this.password = password;
+        this.exceptionsDisplay = displaysExceptions;
     }
 
 
@@ -138,6 +143,12 @@ public class WebSocketListenerForObs extends WebSocketListener {
 
     @Override
     public void onClosing(WebSocket webSocket, int code, String reason) {
-        log.info("WebSocket closed with code: {}, reason: {}", code, reason);
+        log.debug("WebSocket closed with code: {}, reason: {}", code, reason);
+
+        if (code != 1000) {
+            exceptionsDisplay.setObsException(new ObsException(
+                MessageFormat.format("OBS WebSocket connection closed unexpectedly: {1}", reason)
+            ));
+        }
     }
 }
