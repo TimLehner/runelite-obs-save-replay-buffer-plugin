@@ -35,6 +35,7 @@ import net.runelite.api.Player;
 import net.runelite.api.events.*;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.AnimationID;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -87,6 +88,7 @@ public class SaveReplayBufferForObsPlugin extends Plugin
 
     protected enum EventType
     {
+        COLLECTION_LOG,
         HIGH_GAMBLE,
         UNTRADEABLE_DROP,
         VALUABLE_DROP,
@@ -128,6 +130,8 @@ public class SaveReplayBufferForObsPlugin extends Plugin
                 return config.untradeableDropDelay();
             case HIGH_GAMBLE:
                 return config.highGambleDelay();
+            case COLLECTION_LOG:
+                return config.collectionLogDelay();
             default:
                 return 0;
         }
@@ -270,6 +274,7 @@ public class SaveReplayBufferForObsPlugin extends Plugin
     private boolean shouldTakeScreenshot = false;
     private EventType queuedScreenshotType = null;
 
+    private static final String COLLECTION_LOG_TEXT = "New item added to your collection log: ";
     private static final String CHEST_LOOTED_MESSAGE = "You find some treasure in the chest!";
     private static final Map<Integer, String> CHEST_LOOT_EVENTS = ImmutableMap.of(12127, "The Gauntlet");
     private static final ImmutableList<String> PET_MESSAGES = ImmutableList.of("You have a funny feeling like you're being followed",
@@ -341,6 +346,11 @@ public class SaveReplayBufferForObsPlugin extends Plugin
             {
                 saveReplayBuffer(EventType.DUELS);
             }
+        }
+
+        if (chatMessage.startsWith(COLLECTION_LOG_TEXT) && client.getVarbitValue(VarbitID.OPTION_COLLECTION_NEW_ITEM) == 1 && config.saveCollectionLog())
+        {
+            saveReplayBuffer(EventType.COLLECTION_LOG);
         }
     }
 

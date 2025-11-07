@@ -236,6 +236,19 @@ public interface SaveReplayBufferForObsConfig extends Config
         return false;
     }
 
+    @ConfigItem(
+            keyName = "saveCollectionLog",
+            name = "Collection log",
+            description = "Attempt to save the OBS replay buffer when completing an entry in the collection log.<br>"
+                    + "Requires 'Collection log - New addition notification' to be enabled in the RuneScape settings.",
+            position = 19,
+            section = whatSection
+    )
+    default boolean saveCollectionLog()
+    {
+        return false;
+    }
+
     @ConfigSection(
             name = "Delay before capture (s)",
             description = "Delay before saving the replay buffer after the event occurs, to capture live reactions to the event",
@@ -350,6 +363,15 @@ public interface SaveReplayBufferForObsConfig extends Config
             section = delaySection
     )
     default int highGambleDelay() { return 0; }
+
+    @ConfigItem(
+            keyName = "collectionLogDelay",
+            name = "Collection log entries",
+            description = "Delay the attempt to save the OBS replay buffer after a new entry in the collection log.",
+            position = 15,
+            section = delaySection
+    )
+    default int collectionLogDelay() { return 0; }
 
     @ConfigSection(
             name = "OBS WebSocket Options",
