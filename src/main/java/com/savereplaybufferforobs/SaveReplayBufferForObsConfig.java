@@ -66,6 +66,18 @@ public interface SaveReplayBufferForObsConfig extends Config
     }
 
     @ConfigItem(
+            keyName = "allowPluginMessagesAllCommands",
+            name = "Plugin Messages allowed all OBS Commands",
+            description = "Allows sending arbitrary OBS WebSocket commands with data via Plugin Messages for custom OBS integrations.",
+            position = 100,
+            section = whatSection
+    )
+    default boolean allowAllObsCommands()
+    {
+        return false;
+    }
+
+    @ConfigItem(
             keyName = "saveRewards",
             name = "Rewards",
             description = "Attempt to save the OBS replay buffer for chests, clues, barrows and quest completion.",

@@ -185,7 +185,7 @@ public class SaveReplayBufferForObsPlugin extends Plugin
         }
 
         String requestMethod = event.getName();
-        if (ALLOWED_OBS_API_METHODS.contains(requestMethod)) {
+        if (config.allowAllObsCommands() || ALLOWED_OBS_API_METHODS.contains(requestMethod)) {
             // temporarily require whitelist of commands. Perhaps we should expand the plugin scope to generic OBS integration?
             obsClient.makeOBSRequest(requestMethod, "runelite-clip-req", event.getData());
         }
