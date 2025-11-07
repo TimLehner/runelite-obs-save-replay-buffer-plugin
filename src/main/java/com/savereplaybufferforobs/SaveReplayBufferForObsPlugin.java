@@ -52,6 +52,7 @@ import javax.inject.Inject;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -86,6 +87,8 @@ public class SaveReplayBufferForObsPlugin extends Plugin implements DisplaysExce
 
     private ObsExceptionOverlay obsExceptionOverlay = null;
 
+    private ScheduledFuture<?> healthcheck;
+
     @Provides
     SaveReplayBufferForObsConfig getConfig(ConfigManager configManager)
     {
@@ -94,6 +97,9 @@ public class SaveReplayBufferForObsPlugin extends Plugin implements DisplaysExce
 
     @Override
     public void setObsException(ObsException exception) {
+        if (obsExceptionOverlay != null) {
+            overlayManager.remove(obsExceptionOverlay);
+        }
         obsExceptionOverlay = new ObsExceptionOverlay(config, exception);
         overlayManager.add(obsExceptionOverlay);
     }
@@ -178,6 +184,9 @@ public class SaveReplayBufferForObsPlugin extends Plugin implements DisplaysExce
     private void reconnect()
     {
         if (obsClient != null) {
+            if (healthcheck != null) {
+                healthcheck.cancel(true);
+            }
             obsClient.disconnect();
         }
 
@@ -191,6 +200,10 @@ public class SaveReplayBufferForObsPlugin extends Plugin implements DisplaysExce
                 this
         );
         obsClient.connect();
+        if (config.checkReplayBufferEnabled())
+        {
+            healthcheck = scheduledExecutorService.scheduleAtFixedRate(obsClient::pingHealth, 1, config.checkReplayBufferFrequency(), TimeUnit.SECONDS);
+        }
     }
 
     @Subscribe

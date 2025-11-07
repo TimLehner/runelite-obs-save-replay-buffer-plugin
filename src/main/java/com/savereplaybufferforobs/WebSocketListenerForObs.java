@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.Format;
 import java.text.MessageFormat;
 import java.util.Base64;
+import java.util.Objects;
 
 @Slf4j
 public class WebSocketListenerForObs extends WebSocketListener {
@@ -24,7 +25,10 @@ public class WebSocketListenerForObs extends WebSocketListener {
 
     private final DisplaysExceptions exceptionsDisplay;
 
-    public WebSocketListenerForObs(Gson gson, String password, DisplaysExceptions displaysExceptions) {
+    private final WebSocketClientForObs client;
+
+    public WebSocketListenerForObs(WebSocketClientForObs client, Gson gson, String password, DisplaysExceptions displaysExceptions) {
+        this.client = client;
         this.gson = gson;
         this.password = password;
         this.exceptionsDisplay = displaysExceptions;
@@ -67,6 +71,16 @@ public class WebSocketListenerForObs extends WebSocketListener {
                 }
             }
         }
+    }
+
+    private static class RequestResponse {
+        public String requestId;
+        public String requestType;
+        private Object responseData;
+    }
+
+    private static class HealthResponse {
+        public boolean outputActive;
     }
 
     private String computeAuthentication(String salt, String challenge) {
@@ -128,7 +142,7 @@ public class WebSocketListenerForObs extends WebSocketListener {
 
     @Override
     public void onMessage(WebSocket webSocket, String text) {
-        log.debug("Received text: {}", text);
+        log.info("Received text: {}", text);
         ObsV5Message response = gson.fromJson(text, ObsV5Message.class);
         if (response.op == 0) {
             HelloData helloData = gson.fromJson(response.d, HelloData.class);
@@ -138,16 +152,31 @@ public class WebSocketListenerForObs extends WebSocketListener {
             webSocket.send(gson.toJson(identifyRequest));
         } else if (response.op == 2) { // Opcode 2: Identified (Success after Identify/Auth)
             log.info("OBS successfully Identified. Connection ready.");
+            client.setConnected(true);
+        } else if (response.op == 7) { // Opcode 7: RequestResponse
+            RequestResponse responseData = gson.fromJson(response.d, RequestResponse.class);
+            if (Objects.equals(responseData.requestType, "GetReplayBufferStatus")) {
+                // healthcheck response
+                HealthResponse healthResponse = gson.fromJson(responseData.responseData.toString(), HealthResponse.class);
+                if (healthResponse.outputActive) {
+                    exceptionsDisplay.clearObsException();
+                }
+                else
+                {
+                    exceptionsDisplay.setObsException(new ObsException("OBS Replay Buffer is not active!"));
+                }
+            }
         }
     }
 
     @Override
     public void onClosing(WebSocket webSocket, int code, String reason) {
-        log.debug("WebSocket closed with code: {}, reason: {}", code, reason);
+        log.info("WebSocket closed with code: {}, reason: {}", code, reason);
+        client.setConnected(false);
 
         if (code != 1000) {
             exceptionsDisplay.setObsException(new ObsException(
-                MessageFormat.format("OBS WebSocket connection closed unexpectedly: {1}", reason)
+                MessageFormat.format("OBS WebSocket connection closed unexpectedly: {0}", reason)
             ));
         }
     }
